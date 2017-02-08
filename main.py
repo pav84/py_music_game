@@ -1,18 +1,19 @@
 import curses
 import time
+from box import Box
 
 ROW_COUNT = 4
-COL_COUNT = 8
+COL_COUNT = 16
 boxes = []
 boxes_cols = []
+selected = []
+q = -1
 
 def drawBoxes():
     for col in range(0, COL_COUNT):
         boxes_cols = []
         for row in range(0, ROW_COUNT):
-            box = curses.newwin(height, width, (height + 1) * row + 1, (width + 1) * col + 1)
-            box.bkgd(' ', curses.color_pair(1) | curses.A_REVERSE)
-            box.refresh()
+            box = Box(screen.subwin(height, width, (height + 1) * row + 1, (width + 1) * col + 1))
             boxes_cols.append(box)
         boxes.append(boxes_cols)
 
@@ -31,17 +32,33 @@ def drawProgress():
         setColumnColor(low, "LOW")
         setColumnColor(middle, "MIDDLE")
         setColumnColor(i, "HIGH")
-        time.sleep(0.5)
+
+        curses.doupdate()
+        time.sleep(0.1)
 
 def setColumnColor(column_idx, highlight):
     for box in boxes[column_idx]:
-        if highlight == "HIGH":
-            box.bkgd(' ', curses.color_pair(2) | curses.A_REVERSE | curses.A_BOLD)
-        elif highlight == "MIDDLE":
-            box.bkgd(' ', curses.color_pair(1) | curses.A_REVERSE | curses.A_BOLD)
+        # box.setColor(highlight)
+        if box.selected == True:
+            box.window.bkgd(' ', curses.color_pair(3) | curses.A_REVERSE | curses.A_BOLD)
         else:
-            box.bkgd(' ', curses.color_pair(1) | curses.A_REVERSE)
-        box.refresh()
+            if highlight == "HIGH":
+                box.window.bkgd(' ', curses.color_pair(2) | curses.A_REVERSE | curses.A_BOLD)
+            elif highlight == "MIDDLE":
+                box.window.bkgd(' ', curses.color_pair(1) | curses.A_REVERSE | curses.A_BOLD)
+            else:
+                box.window.bkgd(' ', curses.color_pair(1) | curses.A_REVERSE)
+        box.window.noutrefresh()
+
+def selectBox():
+    box = boxes[7][1]
+    # if q == ord('z'):
+    box.select()
+    # elif q == ord('x'):
+        # box.unselect()
+    # else:
+        # pass
+
 
 try:
     screen = curses.initscr()
@@ -54,11 +71,12 @@ try:
 
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
+    curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
 
     screen.refresh()
     drawBoxes()
+    selectBox()
 
-    q = -1
     while q != ord('q'):
         drawProgress()
         q = screen.getch()
