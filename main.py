@@ -1,19 +1,26 @@
 import curses
 import time
+import pygame
 from box import Box
+from keyMap import KeyMap
 
 ROW_COUNT = 4
-COL_COUNT = 16
+COL_COUNT = 10
 boxes = []
 boxes_cols = []
-selected = []
+
+pygame.mixer.init()
+sound = pygame.mixer.music
 q = -1
 
 def drawBoxes():
     for col in range(0, COL_COUNT):
         boxes_cols = []
         for row in range(0, ROW_COUNT):
-            box = Box(screen.subwin(height, width, (height + 1) * row + 1, (width + 1) * col + 1))
+            box = Box(
+                screen.subwin(height, width, (height + 1) * row + 1, (width + 1) * col + 1),
+                'mp3/%d.ogg'%(row*2)
+                )
             boxes_cols.append(box)
         boxes.append(boxes_cols)
 
@@ -29,35 +36,49 @@ def drawProgress():
         else:
             middle = i - 1
             low = i - 2
-        setColumnColor(low, "LOW")
-        setColumnColor(middle, "MIDDLE")
+        setColumnColor(middle, "LOW")
+        # setColumnColor(middle, "MIDDLE")
         setColumnColor(i, "HIGH")
 
         curses.doupdate()
-        time.sleep(0.1)
+        global q
+        q = screen.getch()
+        if q != -1:
+            selectBox()
+        time.sleep(0.17)
 
 def setColumnColor(column_idx, highlight):
     for box in boxes[column_idx]:
-        # box.setColor(highlight)
-        if box.selected == True:
-            box.window.bkgd(' ', curses.color_pair(3) | curses.A_REVERSE | curses.A_BOLD)
-        else:
-            if highlight == "HIGH":
+        if highlight == "HIGH":
+            if box.selected == True:
+                sound.load(box.sound)
+                sound.play()
+                box.window.bkgd(' ', curses.color_pair(3) | curses.A_REVERSE | curses.A_BOLD)
+            else:
                 box.window.bkgd(' ', curses.color_pair(2) | curses.A_REVERSE | curses.A_BOLD)
-            elif highlight == "MIDDLE":
-                box.window.bkgd(' ', curses.color_pair(1) | curses.A_REVERSE | curses.A_BOLD)
+        # elif highlight == "MIDDLE":
+        #     if box.selected == True:
+        #         box.window.bkgd(' ', curses.color_pair(3) | curses.A_REVERSE)
+        #     else:
+        #         box.window.bkgd(' ', curses.color_pair(1) | curses.A_REVERSE | curses.A_BOLD)
+        else:
+            if box.selected == True:
+                box.window.bkgd(' ', curses.color_pair(3) | curses.A_REVERSE)
             else:
                 box.window.bkgd(' ', curses.color_pair(1) | curses.A_REVERSE)
         box.window.noutrefresh()
 
 def selectBox():
-    box = boxes[7][1]
-    # if q == ord('z'):
-    box.select()
-    # elif q == ord('x'):
-        # box.unselect()
-    # else:
-        # pass
+    global q
+    point = KeyMap.keys[q]
+    box = boxes[point[0]][point[1]]
+    if box.selected:
+        box.unselect()
+        screen.refresh()
+    else:
+        box.select()
+        screen.refresh()
+    q = -1
 
 
 try:
@@ -75,11 +96,9 @@ try:
 
     screen.refresh()
     drawBoxes()
-    selectBox()
 
-    while q != ord('q'):
+    while q != ord('`'):
         drawProgress()
-        q = screen.getch()
 
 finally:
     curses.endwin()
