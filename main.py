@@ -9,7 +9,7 @@ board = []
 print "For exit press '~'"
 print 'Loading pygame...'
 pygame.mixer.init()
-sound = pygame.mixer.music
+mixer = pygame.mixer
 
 try:
     screen = curses.initscr()
@@ -24,7 +24,7 @@ try:
     screen.refresh()
     board = Board(screen, COL_COUNT, ROW_COUNT)
     while True:
-        board.drawProgressLine(screen, sound)
+        board.drawProgressLine(screen, mixer)
 
 finally:
     curses.endwin()

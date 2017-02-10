@@ -29,7 +29,7 @@ class Board(object):
                 column.append(box)
             self.board.append(column)
 
-    def drawProgressLine(self, screen, sound):
+    def drawProgressLine(self, screen, mixer):
         board_size = len(self.board)
         for i in range(0, board_size):
             max_len =board_size - 1
@@ -38,21 +38,21 @@ class Board(object):
             else:
                 low = i - 1
             self.setProgressColor(low, "LOW", None)
-            self.setProgressColor(i, "HIGH", sound)
+            self.setProgressColor(i, "HIGH", mixer)
 
             curses.doupdate()
             newKey = screen.getch()
             if self.key != newKey:
                 self.keyMap.handleKey(self.key, self.board, screen)
                 self.key = newKey
-            time.sleep(0.17)
+            time.sleep(0.25)
 
-    def setProgressColor(self, column_idx, highlight, sound):
+    def setProgressColor(self, column_idx, highlight, mixer):
         for box in self.board[column_idx]:
             if highlight == "HIGH":
                 if box.selected == True:
-                    sound.load(box.sound)
-                    sound.play()
+                    s = mixer.Sound(box.sound)
+                    mixer.find_channel().play(s)
                     box.window.bkgd(' ', curses.color_pair(3) | curses.A_REVERSE | curses.A_BOLD)
                 else:
                     box.window.bkgd(' ', curses.color_pair(2) | curses.A_REVERSE | curses.A_BOLD)
