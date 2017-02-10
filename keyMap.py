@@ -1,3 +1,5 @@
+import sys
+
 class KeyMap(object):
     keys = {
     ord('1') : [0, 0],
@@ -44,3 +46,17 @@ class KeyMap(object):
     ord('.') : [8, 3],
     ord('/') : [9, 3],
     }
+
+    def handleKey(self, key, board, screen):
+        if key == ord('`'):
+            sys.exit(0)
+
+        point = self.keys.get(key)
+        if point:
+            box = board[point[0]][point[1]]
+            if box.selected:
+                box.unselect()
+                screen.refresh()
+            else:
+                box.select()
+                screen.refresh()
